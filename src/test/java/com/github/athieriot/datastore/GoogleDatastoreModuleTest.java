@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class GoogleDatastoreModuleTests {
+public class GoogleDatastoreModuleTest {
 
 	private static final String JSON = "{\n" +
 			"  \"address\": {\n" +
