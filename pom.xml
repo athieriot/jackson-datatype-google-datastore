@@ -9,7 +9,9 @@
 	<packaging>jar</packaging>
 
 	<name>jackson-datatype-google-datastore</name>
-	<description>Support for Google Datastore Entity</description>
+    <description>Support for Google Datastore Entity</description>
+    <url>https://github.com/athieriot/jackson-datatype-google-datastore</url>
+    <inceptionYear>2018</inceptionYear>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
