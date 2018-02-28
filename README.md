@@ -4,6 +4,7 @@ Project to build Jackson (http://jackson.codehaus.org) extension module (jar) to
 
 [![Build Status](https://travis-ci.org/FasterXML/jackson-datatype-json-org.svg)](https://travis-ci.org/athieriot/jackson-datatype-google-datastore)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.athieriot/jackson-datatype-google-datastore/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.athieriot/jackson-datatype-google-datastore/)
+[![Coverage Status](https://coveralls.io/repos/github/athieriot/jackson-datatype-google-datastore/badge.svg?branch=master)](https://coveralls.io/github/athieriot/jackson-datatype-google-datastore?branch=master)
 
 ## Usage
 
