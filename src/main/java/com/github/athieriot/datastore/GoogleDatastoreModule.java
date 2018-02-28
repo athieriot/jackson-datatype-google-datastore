@@ -1,8 +1,7 @@
-package io.finkit.jackson.datastore;
+package com.github.athieriot.datastore;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
 
 public class GoogleDatastoreModule extends SimpleModule

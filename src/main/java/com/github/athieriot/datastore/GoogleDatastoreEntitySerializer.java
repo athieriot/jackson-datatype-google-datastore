@@ -1,4 +1,4 @@
-package io.finkit.jackson.datastore;
+package com.github.athieriot.datastore;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonToken;
@@ -9,9 +9,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.EntityValue;
 import com.google.cloud.datastore.FullEntity;
-import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -27,11 +27,6 @@ public class GoogleDatastoreEntitySerializer extends StdSerializer<FullEntity>
     {
         super(FullEntity.class);
     }
-
-//    @Override // since 2.6
-//    public boolean isEmpty(SerializerProvider provider, Entity value) {
-//        return (value == null) || value.length() == 0;
-//    }
 
     @Override
     public void serialize(FullEntity value, JsonGenerator g, SerializerProvider provider)
@@ -51,7 +46,7 @@ public class GoogleDatastoreEntitySerializer extends StdSerializer<FullEntity>
                 typeSer.typeId(value, JsonToken.START_OBJECT));
         serializeContents(value, g, provider);
         typeSer.writeTypeSuffix(g, typeIdDef);
-    
+
     }
 
     @Override
@@ -60,11 +55,10 @@ public class GoogleDatastoreEntitySerializer extends StdSerializer<FullEntity>
     {
         return createSchemaNode("object", true);
     }
-    
+
     protected void serializeContents(FullEntity value, JsonGenerator g, SerializerProvider provider)
         throws IOException
     {
-
         Iterator it = value.getNames().iterator();
 
         while (it.hasNext()) {
@@ -78,33 +72,37 @@ public class GoogleDatastoreEntitySerializer extends StdSerializer<FullEntity>
             }
             g.writeFieldName(key);
 
-            Value v = value.getValue(key);
-            v.getType()
-
-//            Object ob = value.opt(key);
-//            g.writeFieldName(key);
-//            Class<?> cls = ob.getClass();
-//            if (cls == JSONObject.class) {
-//                serialize((JSONObject) ob, g, provider);
-//            } else if (cls == JSONArray.class) {
-//                JSONArraySerializer.instance.serialize((JSONArray) ob, g, provider);
-//            } else  if (cls == String.class) {
-//                g.writeString((String) ob);
-//            } else  if (cls == Integer.class) {
-//                g.writeNumber(((Integer) ob).intValue());
-//            } else  if (cls == Long.class) {
-//                g.writeNumber(((Long) ob).longValue());
-//            } else  if (cls == Boolean.class) {
-//                g.writeBoolean(((Boolean) ob).booleanValue());
-//            } else  if (cls == Double.class) {
-//                g.writeNumber(((Double) ob).doubleValue());
-//            } else if (JSONObject.class.isAssignableFrom(cls)) { // sub-class
-//                serialize((JSONObject) ob, g, provider);
-//            } else if (JSONArray.class.isAssignableFrom(cls)) { // sub-class
-//                JSONArraySerializer.instance.serialize((JSONArray) ob, g, provider);
-//            } else {
-//                provider.defaultSerializeValue(ob, g);
-//            }
+            ValueType type = value.getValue(key).getType();
+            if (type == ValueType.ENTITY) {
+                serialize(value.getEntity(key), g, provider);
+            } else if (type == ValueType.LIST) {
+                serializeList(value, g, provider, key);
+            }
+            else if (type == ValueType.STRING) {
+                g.writeString(value.getString(key));
+            } else if (type == ValueType.LONG) {
+                g.writeNumber(value.getLong(key));
+            } else if (type == ValueType.BOOLEAN) {
+                g.writeBoolean(value.getBoolean(key));
+            } else if (type == ValueType.DOUBLE) {
+                g.writeNumber(value.getDouble(key));
+            } else {
+                g.writeString(value.getValue(key).toString());
+            }
         }
+    }
+
+    private void serializeList(FullEntity value, JsonGenerator g, SerializerProvider provider, String key) throws IOException {
+        g.writeStartArray();
+
+        for (Object o : value.getList(key)) {
+            if (o instanceof EntityValue) {
+                serialize(((EntityValue) o).get(), g, provider);
+            } else {
+                provider.defaultSerializeValue(o, g);
+            }
+        }
+
+        g.writeEndArray();
     }
 }

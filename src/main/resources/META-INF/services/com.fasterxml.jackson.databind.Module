@@ -1,1 +1,1 @@
-io.finkit.jackson.datastore.GoogleDatastoreModule
+com.github.athieriot.datastore.GoogleDatastoreModule

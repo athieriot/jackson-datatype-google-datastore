@@ -1,20 +1,22 @@
-package io.finkit.jackson.datastore;
+package com.github.athieriot.datastore;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.google.cloud.datastore.*;
-import com.oracle.javafx.jmx.json.JSONException;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.IncompleteKey;
+import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.NullValue;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class GoogleDatastoreEntityDeserializer extends StdDeserializer<FullEntity>
 {
     private static final long serialVersionUID = 1L;
 
-    public final static GoogleDatastoreEntityDeserializer instance = new GoogleDatastoreEntityDeserializer();
+    public static final GoogleDatastoreEntityDeserializer instance = new GoogleDatastoreEntityDeserializer();
 
     private GoogleDatastoreEntityDeserializer()
     {
@@ -34,11 +36,9 @@ public class GoogleDatastoreEntityDeserializer extends StdDeserializer<FullEntit
         for (; t == JsonToken.FIELD_NAME; t = p.nextToken()) {
             String fieldName = p.getCurrentName();
             t = p.nextToken();
-            try {
-                switch (t) {
+            switch (t) {
                 case START_ARRAY:
-//                    entity.set(fieldName, JSONArrayDeserializer.instance.deserialize(p, ctxt));
-                    entity.set(fieldName, new ArrayList<EntityValue>());
+                    entity.set(fieldName, deserializeArray(p, ctxt));
                     continue;
                 case START_OBJECT:
                     entity.set(fieldName, deserialize(p, ctxt));
@@ -61,16 +61,51 @@ public class GoogleDatastoreEntityDeserializer extends StdDeserializer<FullEntit
                 case VALUE_NUMBER_FLOAT:
                     entity.set(fieldName, p.getDoubleValue());
                     continue;
-//                case VALUE_EMBEDDED_OBJECT:
-//                    entity.set(fieldName, p.getEmbeddedObject());
-//                    continue;
                 default:
-                }
-            } catch (JSONException e) {
-                throw ctxt.instantiationException(handledType(), e);
             }
             return (FullEntity) ctxt.handleUnexpectedToken(FullEntity.class, p);
         }
         return entity.build();
+    }
+
+    private ListValue deserializeArray(JsonParser p, DeserializationContext ctxt)
+            throws IOException
+    {
+        ListValue.Builder list = ListValue.newBuilder();
+        JsonToken t;
+        while ((t = p.nextToken()) != JsonToken.END_ARRAY) {
+            switch (t) {
+                case START_ARRAY:
+                    list.addValue(deserializeArray(p, ctxt));
+                    continue;
+                case START_OBJECT:
+                    list.addValue(deserialize(p, ctxt));
+                    continue;
+                case VALUE_STRING:
+                    list.addValue(p.getText());
+                    continue;
+                case VALUE_NULL:
+                    list.addValue(new NullValue());
+                    continue;
+                case VALUE_TRUE:
+                    list.addValue(true);
+                    continue;
+                case VALUE_FALSE:
+                    list.addValue(false);
+                    continue;
+                case VALUE_NUMBER_INT:
+                    list.addValue(p.getNumberValue().longValue());
+                    continue;
+                case VALUE_NUMBER_FLOAT:
+                    list.addValue(p.getNumberValue().floatValue());
+                    continue;
+                case VALUE_EMBEDDED_OBJECT:
+                    list.addValue(p.getEmbeddedObject().toString());
+                    continue;
+                default:
+                    return (ListValue) ctxt.handleUnexpectedToken(handledType(), p);
+            }
+        }
+        return list.build();
     }
 }
