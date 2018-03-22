@@ -37,7 +37,7 @@ You will also need the Google Datastore Client in the classpath
 To use the the Module in Jackson, simply register it with the ObjectMapper instance:
 
 ```java
-// import io.finkit.jackson.datastore.GoogleDatastoreModule;
+// import com.github.athieriot.datastore.GoogleDatastoreModule;
 
 ObjectMapper mapper = new ObjectMapper();
 mapper.registerModule(new GoogleDatastoreModule());
